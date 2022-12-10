@@ -17,7 +17,7 @@ if len(sys.argv) > 1:
         print("--author show the author of the quote")
         exit(0)
     elif sys.argv[1] == "-v":
-        print("beetlesplash 1.1")
+        print("beetlesplash 1.2")
         exit(0)
     elif sys.argv[1] == "--no-quote":
         show_quote = False
@@ -41,14 +41,17 @@ class bcolors:
 
 data = []
 image_width = 0
+image_height = 0
 terminal_width = os.get_terminal_size().columns
+terminal_height = os.get_terminal_size().lines
 # Read the file containing the ascii art
 with open("/home/tototmek/Projects/Python/beetlesplash/beetle_processed.txt", "r") as file:
     for line in file:
         line = line.rstrip()
         image_width = max(image_width, len(line))
         data.append(line)
-image_margin = 10
+        image_height += 1
+image_margin = 7
 
 # Add spaces to the end of each line to make the image centered
 for i in range(len(data)):
@@ -68,6 +71,8 @@ import datetime
 now = datetime.datetime.now()
 info.append(now.strftime("%d.%m.%Y %H:%M"))
 
+image_width = image_width + image_margin
+
 #  Load random quote from quotes.data
 if show_quote:
     import random
@@ -79,6 +84,7 @@ if show_quote:
     quote_width = 32
     quote_lines = []
     line = ""
+    quote_width = min(quote_width, (terminal_width - image_width)//2-1)
     for word in quote[0].split():
         if len(line) + len(word) > quote_width:
             quote_lines.append(line)
@@ -98,8 +104,14 @@ if show_quote:
 for i in range(len(info)):
     data[i+3] += bcolors.OKGREEN + info[i] + bcolors.ENDC
 
+top_spacing_coefficient = 0.33
+top_spacing = int((terminal_height - image_height) * top_spacing_coefficient)
+bottom_spacing = terminal_height - image_height - top_spacing - 3
+print(top_spacing*"\n")
+
 # Print the image
 for line in data:
     print(" " * ((terminal_width - image_width)//2) + line)
 
+print(bottom_spacing*"\n")
 exit(0)
