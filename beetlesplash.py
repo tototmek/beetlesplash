@@ -104,7 +104,7 @@ if show_quote:
 for i in range(len(info)):
     data[i+3] += bcolors.OKGREEN + info[i] + bcolors.ENDC
 
-top_spacing_coefficient = 0.33
+top_spacing_coefficient = 0.27
 top_spacing = int((terminal_height - image_height) * top_spacing_coefficient)
 bottom_spacing = terminal_height - image_height - top_spacing - 3
 print(top_spacing*"\n")
