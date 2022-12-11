@@ -1,31 +1,66 @@
 import os
 import socket
 
-show_author = True
-show_quote = True
+show_author = False
+show_quote = False
 
 # Parse command line arguments
-import sys
-if len(sys.argv) > 1:
-    if sys.argv[1] == "-h":
-        print("Usage: python3 splash.py [OPTION]")
-        print("Prints a random quote and some information about the computer")
-        print("Options:")
-        print("  -h  show this help message and exit")
-        print("  -v  show version information and exit")
-        print("--quote show a random quote")
-        print("--author show the author of the quote")
-        exit(0)
-    elif sys.argv[1] == "-v":
-        print("beetlesplash 1.2")
-        exit(0)
-    elif sys.argv[1] == "--no-quote":
-        show_quote = False
-    elif sys.argv[1] == "--no-author":
-        show_author = False
-    else:
-        print("Unknown option: " + sys.argv[1])
-        exit(1)
+import argparse
+parser = argparse.ArgumentParser(description="Prints a random quote and some information about the computer")
+parser.add_argument("-v", "--version", help="show version information and exit", action="store_true")
+parser.add_argument("--config", help="path to the config file")
+args = parser.parse_args()
+if args.version:
+    print("beetlesplash 1.3")
+    exit(0)
+if args.config == None:
+    print("\033[91mbeetlesplash error! No config file specified\033[0m")
+    exit(1)
+CONFIG_PATH = args.config
+
+# Check if the terminal is big enough
+if os.get_terminal_size().columns < 80 or os.get_terminal_size().lines < 24:
+    print('\t\n\(")/\t\n-( )-\t\n/(_)\\\n\033[92mTerminal too small for beetles...\033[0m')
+    exit(1)
+
+# Check if the config file exists
+if not os.path.isfile(CONFIG_PATH):
+    print("\033[91mbeetlesplash error! Config file not found: " + CONFIG_PATH + "\033[0m")
+    exit(1)
+
+IMAGE_PATH = None
+QUOTE_PATH = None
+image_margin = 6
+top_spacing_coefficient = 0.27
+quote_width = 32
+# Read the config file
+with open(CONFIG_PATH, "r") as file:
+    for line in file:
+        line = line.rstrip()
+        if line.startswith("quote_path = "):
+            QUOTE_PATH = line[13:]
+        elif line.startswith("show_author = "):
+            show_author = line[14:] == "true"
+        elif line.startswith("show_quote = "):
+            show_quote = line[13:] == "true"
+        elif line.startswith("image_path = "):
+            IMAGE_PATH = line[13:]
+        elif line.startswith("#") or line == "":
+            continue
+        elif line.startswith("image_margin = "):
+            image_margin = int(line[15:])
+        elif line.startswith("top_spacing_coefficient = "):
+            top_spacing_coefficient = float(line[26:])
+        elif line.startswith("quote_width = "):
+            quote_width = int(line[14:])
+        else:
+            print("\033[91mbeetlesplash error! Unknown config option: " + line + "\033[0m")
+            exit(1)
+
+# Check if the image file exists
+if not os.path.isfile(IMAGE_PATH):
+    print("\033[91mbeetlesplash error! Image file not found: " + IMAGE_PATH + "\033[0m")
+    exit(1)
 
 # Class used to print colored text in the terminal
 class bcolors:
@@ -45,13 +80,12 @@ image_height = 0
 terminal_width = os.get_terminal_size().columns
 terminal_height = os.get_terminal_size().lines
 # Read the file containing the ascii art
-with open("/home/tototmek/Projects/Python/beetlesplash/beetle_processed.txt", "r") as file:
+with open(IMAGE_PATH, "r") as file:
     for line in file:
         line = line.rstrip()
         image_width = max(image_width, len(line))
         data.append(line)
         image_height += 1
-image_margin = 7
 
 # Add spaces to the end of each line to make the image centered
 for i in range(len(data)):
@@ -76,12 +110,11 @@ image_width = image_width + image_margin
 #  Load random quote from quotes.data
 if show_quote:
     import random
-    with open("/home/tototmek/Projects/Python/beetlesplash/quotes.data", "r") as file:
+    with open(QUOTE_PATH, "r") as file:
         quotes = file.readlines()
         quote = random.choice(quotes).split("~")
 
     # split the quote into lines
-    quote_width = 32
     quote_lines = []
     line = ""
     quote_width = min(quote_width, (terminal_width - image_width)//2-1)
@@ -104,7 +137,6 @@ if show_quote:
 for i in range(len(info)):
     data[i+3] += bcolors.OKGREEN + info[i] + bcolors.ENDC
 
-top_spacing_coefficient = 0.27
 top_spacing = int((terminal_height - image_height) * top_spacing_coefficient)
 bottom_spacing = terminal_height - image_height - top_spacing - 3
 print(top_spacing*"\n")

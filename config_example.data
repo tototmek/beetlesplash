@@ -1,0 +1,9 @@
+# beetlesplash config file
+
+quote_path = /home/tototmek/Projects/Python/beetlesplash/quotes.data
+image_path = /home/tototmek/Projects/Python/beetlesplash/beetle_processed.txt
+image_margin = 6
+top_spacing_coefficient = 0.27
+quote_width = 32
+show_quote = true
+show_author = true
